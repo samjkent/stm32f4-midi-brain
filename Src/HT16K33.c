@@ -68,8 +68,7 @@ HAL_StatusTypeDef ht16k33_set_blink_rate(HT16K33_HandleTypeDef *hdev, uint8_t bl
 HAL_StatusTypeDef ht16k33_write_display(HT16K33_HandleTypeDef *hdev)
 {
     // Send 8x16-bits of data
-    uint8_t data[16] = { 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0 };
-    status = HAL_I2C_Mem_Write(hdev->hi2c, hdev->addr, HT16K33_RAM_ADDRESS, 1, (uint8_t *)data, 16, HAL_TIMEOUT);
+    status = HAL_I2C_Mem_Write(hdev->hi2c, hdev->addr, HT16K33_RAM_ADDRESS, 1, (uint8_t *)hdev->buffer, 16, HAL_TIMEOUT);
     if(status != HAL_OK) {
         Error_Handler(__FILE__, __LINE__);
     }
