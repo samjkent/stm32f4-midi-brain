@@ -46,6 +46,19 @@ void USBD_AddNoteOn(uint8_t cable, uint8_t ch, uint8_t note, uint8_t vel)
   MIDI_DataTx(txbuf, 4);
 }
 
+void USBD_AddCC(uint8_t cable, uint8_t ch, uint8_t mode, uint8_t val)
+{
+  //uint8_t cable = 0;
+  uint8_t txbuf[4];
+  
+  cable <<= 4;
+  txbuf[0] = cable + 0xB;
+  txbuf[1] = 0xB0 | ch;
+  txbuf[2] = 0x7F & mode;
+  txbuf[3] = 0x7F & val;
+  MIDI_DataTx(txbuf, 4);
+}
+
 void USBD_AddNoteOff(uint8_t cable, uint8_t ch, uint8_t note)
 {
   //uint8_t cable = 0;

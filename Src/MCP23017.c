@@ -37,7 +37,7 @@ void mcp23017_init(MCP23017_HandleTypeDef *hdev, I2C_HandleTypeDef *hi2c, uint16
 	HAL_StatusTypeDef status;
     status = HAL_I2C_IsDeviceReady(hdev->hi2c, hdev->addr, 10, I2C_TIMEOUT);
     if(status != HAL_OK) {
-        _Error_Handler(__FILE__, __LINE__);
+        Error_Handler(__FILE__, __LINE__);
     }
 
 }

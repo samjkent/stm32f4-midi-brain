@@ -33,6 +33,9 @@ void USBD_AddSysExMessage(uint8_t cable, uint8_t *msg, uint8_t length);
 //Create NoteOn buffer
 void USBD_AddNoteOn(uint8_t cable, uint8_t ch, uint8_t note, uint8_t vel);
 
+// Create CC buffer
+void USBD_AddCC(uint8_t cable, uint8_t ch, uint8_t mode, uint8_t val);
+
 //Create NoteOff buffer
 void USBD_AddNoteOff(uint8_t cable, uint8_t ch, uint8_t note);
 
