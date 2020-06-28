@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
+#include "usbd_midi_if.h"
 #include "MCP23017.h"
 #include "HT16K33.h"
 
@@ -53,6 +54,8 @@ const uint8_t encoderMap[256] = {
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define DEMO 0
+#define NUM_ENCS 8
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -75,7 +78,22 @@ DMA_HandleTypeDef hdma_usart2_tx;
 /* USER CODE BEGIN PV */
 extern struct tUsbMidiCable usbmidicable1;
 MCP23017_HandleTypeDef enc1;
+MCP23017_HandleTypeDef enc2;
+MCP23017_HandleTypeDef enc3;
+MCP23017_HandleTypeDef enc4;
+
+MCP23017_HandleTypeDef enc1_2;
+MCP23017_HandleTypeDef enc3_4;
+
 HT16K33_HandleTypeDef led1;
+HT16K33_HandleTypeDef led2;
+HT16K33_HandleTypeDef led3;
+HT16K33_HandleTypeDef led4;
+HT16K33_HandleTypeDef led5;
+
+uint8_t enc_values[8];
+
+uint8_t banks[1][8];
 
 /* USER CODE END PV */
 
@@ -92,6 +110,43 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void demo(int n) {
+    uint16_t values[5] = {0, 32, 64, 96, 0};
+    int n_runs = 0;
+
+    while(1) {
+        // Clear LEDs
+        ht16k33_clear(&led1);
+        ht16k33_clear(&led2);
+        ht16k33_clear(&led3);
+        ht16k33_clear(&led4);
+
+        if(!values[4]) 
+            ht16k33_clear(&led5);
+
+        // Set real value
+        ht16k33_set_led(&led1, values[0]);
+        ht16k33_set_led(&led2, values[1]);
+        ht16k33_set_led(&led3, values[2]);
+        ht16k33_set_led(&led4, values[3]);
+        ht16k33_set_led(&led5, values[4]);
+    
+        ht16k33_write_display(&led1);
+        ht16k33_write_display(&led2);
+        ht16k33_write_display(&led3);
+        ht16k33_write_display(&led4);
+        ht16k33_write_display(&led5);
+
+        for(int i=0; i < 5; i++) {
+            values[i] = (values[i] + 1) % 128;
+        }
+        
+        HAL_Delay(5);
+
+        if(n_runs > n && n != 0) return; 
+        n_runs++;
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -132,6 +187,19 @@ int main(void)
 
   for (uint8_t i=1; i<128; i++)
  	{
+ 	  int result = HAL_I2C_IsDeviceReady(&hi2c1, (uint16_t)(i<<1), 2, 2);
+ 	  if (result != HAL_OK) // HAL_ERROR or HAL_BUSY or HAL_TIMEOUT
+ 	  {
+          // No I2C
+ 	  }
+ 	  if (result == HAL_OK)
+ 	  {
+ 		  printf("Device detected. Address: %x", i);
+ 	  }
+  }
+
+  for (uint8_t i=1; i<128; i++)
+ 	{
  	  int result = HAL_I2C_IsDeviceReady(&hi2c3, (uint16_t)(i<<1), 2, 2);
  	  if (result != HAL_OK) // HAL_ERROR or HAL_BUSY or HAL_TIMEOUT
  	  {
@@ -143,15 +211,67 @@ int main(void)
  	  }
   }
 
+  // Enc 1
   mcp23017_init(&enc1, &hi2c3, MCP23017_ADDRESS_20);
   mcp23017_iocon(&enc1, MCP23017_PORTA, MCP23017_MIRROR);
   mcp23017_iodir(&enc1, MCP23017_PORTA, MCP23017_IODIR_ALL_INPUT);
   mcp23017_iodir(&enc1, MCP23017_PORTB, MCP23017_IODIR_ALL_INPUT);
   mcp23017_ggpu(&enc1, MCP23017_PORTA, MCP23017_GPPU_ALL_ENABLED);
   mcp23017_ggpu(&enc1, MCP23017_PORTB, MCP23017_GPPU_ALL_ENABLED);
-
   ht16k33_init(&led1, &hi2c3, HT16K33_BASE_ADDRESS);
-  ht16k33_write_display(&led1);
+
+  // Enc 2
+  mcp23017_init(&enc2, &hi2c3, MCP23017_ADDRESS_20 + 4);
+  mcp23017_iocon(&enc2, MCP23017_PORTA, MCP23017_MIRROR);
+  mcp23017_iodir(&enc2, MCP23017_PORTA, MCP23017_IODIR_ALL_INPUT);
+  mcp23017_iodir(&enc2, MCP23017_PORTB, MCP23017_IODIR_ALL_INPUT);
+  mcp23017_ggpu(&enc2, MCP23017_PORTA, MCP23017_GPPU_ALL_ENABLED);
+  mcp23017_ggpu(&enc2, MCP23017_PORTB, MCP23017_GPPU_ALL_ENABLED);
+  ht16k33_init(&led2, &hi2c3, HT16K33_BASE_ADDRESS + 2);
+
+  // Enc 3
+  mcp23017_init(&enc3, &hi2c3, MCP23017_ADDRESS_20 + 2);
+  mcp23017_iocon(&enc3, MCP23017_PORTA, MCP23017_MIRROR);
+  mcp23017_iodir(&enc3, MCP23017_PORTA, MCP23017_IODIR_ALL_INPUT);
+  mcp23017_iodir(&enc3, MCP23017_PORTB, MCP23017_IODIR_ALL_INPUT);
+  mcp23017_ggpu(&enc3, MCP23017_PORTA, MCP23017_GPPU_ALL_ENABLED);
+  mcp23017_ggpu(&enc3, MCP23017_PORTB, MCP23017_GPPU_ALL_ENABLED);
+  ht16k33_init(&led3, &hi2c3, HT16K33_BASE_ADDRESS + 4);
+  
+  // Enc 4
+  mcp23017_init(&enc4, &hi2c3, MCP23017_ADDRESS_20 + 6);
+  mcp23017_iocon(&enc4, MCP23017_PORTA, MCP23017_MIRROR);
+  mcp23017_iodir(&enc4, MCP23017_PORTA, MCP23017_IODIR_ALL_INPUT);
+  mcp23017_iodir(&enc4, MCP23017_PORTB, MCP23017_IODIR_ALL_INPUT);
+  mcp23017_ggpu(&enc4, MCP23017_PORTA, MCP23017_GPPU_ALL_ENABLED);
+  mcp23017_ggpu(&enc4, MCP23017_PORTB, MCP23017_GPPU_ALL_ENABLED);
+  ht16k33_init(&led4, &hi2c3, HT16K33_BASE_ADDRESS + 6);
+
+  // Small Enc LED 
+  ht16k33_init(&led5, &hi2c1, HT16K33_BASE_ADDRESS);
+
+  // Enc 1 & 2
+  mcp23017_init(&enc1_2, &hi2c1, MCP23017_ADDRESS_20 + 6);
+  mcp23017_iocon(&enc1_2, MCP23017_PORTA, MCP23017_MIRROR);
+  mcp23017_iodir(&enc1_2, MCP23017_PORTA, MCP23017_IODIR_ALL_INPUT);
+  mcp23017_iodir(&enc1_2, MCP23017_PORTB, MCP23017_IODIR_ALL_INPUT);
+  mcp23017_ggpu(&enc1_2, MCP23017_PORTA, MCP23017_GPPU_ALL_ENABLED);
+  mcp23017_ggpu(&enc1_2, MCP23017_PORTB, MCP23017_GPPU_ALL_ENABLED);
+
+  // Enc 3 & 4
+  mcp23017_init(&enc3_4, &hi2c1, MCP23017_ADDRESS_20 + 7);
+  mcp23017_iocon(&enc3_4, MCP23017_PORTA, MCP23017_MIRROR);
+  mcp23017_iodir(&enc3_4, MCP23017_PORTA, MCP23017_IODIR_ALL_INPUT);
+  mcp23017_iodir(&enc3_4, MCP23017_PORTB, MCP23017_IODIR_ALL_INPUT);
+  mcp23017_ggpu(&enc3_4, MCP23017_PORTA, MCP23017_GPPU_ALL_ENABLED);
+  mcp23017_ggpu(&enc3_4, MCP23017_PORTB, MCP23017_GPPU_ALL_ENABLED);
+
+  if(DEMO) {
+    demo(0);
+  } else {
+    demo(128);
+  }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -162,13 +282,68 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+
+    // Clear LEDs
+    ht16k33_clear(&led1);
+    ht16k33_clear(&led2);
+    ht16k33_clear(&led3);
+    ht16k33_clear(&led4);
+    ht16k33_clear(&led5);
+
+    // Read Encs
     mcp23017_read_gpio(&enc1, 0);
     mcp23017_read_gpio(&enc1, 1);
+    mcp23017_read_gpio(&enc2, 0);
+    mcp23017_read_gpio(&enc2, 1);
+    mcp23017_read_gpio(&enc3, 0);
+    mcp23017_read_gpio(&enc3, 1);
+    mcp23017_read_gpio(&enc4, 0);
+    mcp23017_read_gpio(&enc4, 1);
+   
+    mcp23017_read_gpio(&enc1_2, 0);
+    mcp23017_read_gpio(&enc1_2, 1);
+    mcp23017_read_gpio(&enc3_4, 0);
+    mcp23017_read_gpio(&enc3_4, 1);
 
-    USBD_AddCC(0, 0, 0, encoderMap[enc1.gpio[1]]);
+    // Get real value
+    enc_values[0] = encoderMap[enc1.gpio[1]];
+    enc_values[1] = encoderMap[enc2.gpio[1]];
+    enc_values[2] = encoderMap[enc3.gpio[1]];
+    enc_values[3] = encoderMap[enc4.gpio[1]];
+   
+    enc_values[4] = encoderMap[enc1_2.gpio[1]] / 4;
+    enc_values[5] = encoderMap[enc1_2.gpio[0]] / 4;
+    enc_values[6] = encoderMap[enc3_4.gpio[1]] / 4;
+    enc_values[7] = encoderMap[enc3_4.gpio[0]] / 4;
+
+    for(int i = 0; i < NUM_ENCS; i++) {
+        if(banks[0][i] != enc_values[i]) {
+            banks[0][i] = enc_values[i];
+            USBD_AddCC(0, 0, i, banks[0][i]);
+        }
+    }
+
+    // Set real value
+    ht16k33_set_led(&led1, banks[0][0]);
+    ht16k33_set_led(&led2, banks[0][1]);
+    ht16k33_set_led(&led3, banks[0][2]);
+    ht16k33_set_led(&led4, banks[0][3]);
+
+    ht16k33_set_led(&led5,  0 + banks[0][4]);
+    ht16k33_set_led(&led5, 32 + banks[0][5]);
+    ht16k33_set_led(&led5, 64 + banks[0][6]);
+    ht16k33_set_led(&led5, 96 + banks[0][7]);
+    
+    ht16k33_write_display(&led1);
+    ht16k33_write_display(&led2);
+    ht16k33_write_display(&led3);
+    ht16k33_write_display(&led4);
+    ht16k33_write_display(&led5);
+
     USBD_SendMidiMessages();
 
-    HAL_Delay(100);
+    HAL_Delay(5);
+
   }
   /* USER CODE END 3 */
 }

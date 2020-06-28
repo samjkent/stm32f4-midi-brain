@@ -15,6 +15,8 @@ typedef struct {
 #define HT16K33_BLINKRATE_1HZ          0x02
 #define HT16K33_BLINKRATE_HALFHZ       0x03
 
+#define HT16K33_DISPLAY_ON             0x01
+
 #define HT16K33_RAM_ADDRESS            0x00
 
 #define HT16K33_BASE_ADDRESS           0x70
@@ -24,3 +26,4 @@ HAL_StatusTypeDef ht16k33_set_brightness(HT16K33_HandleTypeDef *hdev, uint8_t br
 HAL_StatusTypeDef ht16k33_set_blink_rate(HT16K33_HandleTypeDef *hdev, uint8_t blinkRate);
 HAL_StatusTypeDef ht16k33_write_display(HT16K33_HandleTypeDef *hdev);
 HAL_StatusTypeDef ht16k33_clear(HT16K33_HandleTypeDef *hdev);
+HAL_StatusTypeDef ht16k33_set_led(HT16K33_HandleTypeDef *hdev, uint16_t led);
