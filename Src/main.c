@@ -311,10 +311,10 @@ int main(void)
     enc_values[2] = encoderMap[enc3.gpio[1]];
     enc_values[3] = encoderMap[enc4.gpio[1]];
    
-    enc_values[4] = encoderMap[enc1_2.gpio[1]] / 4;
-    enc_values[5] = encoderMap[enc1_2.gpio[0]] / 4;
-    enc_values[6] = encoderMap[enc3_4.gpio[1]] / 4;
-    enc_values[7] = encoderMap[enc3_4.gpio[0]] / 4;
+    enc_values[4] = encoderMap[enc1_2.gpio[1]];
+    enc_values[5] = encoderMap[enc1_2.gpio[0]];
+    enc_values[6] = encoderMap[enc3_4.gpio[1]];
+    enc_values[7] = encoderMap[enc3_4.gpio[0]];
 
     for(int i = 0; i < NUM_ENCS; i++) {
         if(banks[0][i] != enc_values[i]) {
@@ -329,10 +329,10 @@ int main(void)
     ht16k33_set_led(&led3, banks[0][2]);
     ht16k33_set_led(&led4, banks[0][3]);
 
-    ht16k33_set_led(&led5,  0 + banks[0][4]);
-    ht16k33_set_led(&led5, 32 + banks[0][5]);
-    ht16k33_set_led(&led5, 64 + banks[0][6]);
-    ht16k33_set_led(&led5, 96 + banks[0][7]);
+    ht16k33_set_led(&led5,  0 + (banks[0][4] / 4));
+    ht16k33_set_led(&led5, 32 + (banks[0][5] / 4));
+    ht16k33_set_led(&led5, 64 + (banks[0][6] / 4));
+    ht16k33_set_led(&led5, 96 + (banks[0][7] / 4));
     
     ht16k33_write_display(&led1);
     ht16k33_write_display(&led2);
