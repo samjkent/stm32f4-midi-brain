@@ -52,6 +52,7 @@ extern "C" {
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
+void controller_set_bank(uint8_t bank);
 
 /* USER CODE BEGIN EFP */
 

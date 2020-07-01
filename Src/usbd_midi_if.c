@@ -26,8 +26,8 @@ static uint16_t MIDI_DataTx(uint8_t *msg, uint16_t length);
 
 USBD_MIDI_ItfTypeDef USBD_Interface_fops_FS =
 {
-  MIDI_DataRx//,
-  //MIDI_DataTx
+  MIDI_DataRx,
+  MIDI_DataTx
 };
 
 
@@ -75,7 +75,6 @@ void USBD_AddNoteOff(uint8_t cable, uint8_t ch, uint8_t note)
 
 void USBD_AddSysExMessage(uint8_t cable, uint8_t *msg, uint8_t length)
 {
-  //uint8_t cable = 0;
   uint8_t txbuf[4];
   int8_t bytes_remain = length;
   uint8_t i = 0;
@@ -151,57 +150,25 @@ static uint16_t MIDI_DataTx(uint8_t *msg, uint16_t length)
 }
 
 
-//process recived midi data
-static uint16_t MIDI_DataRx(uint8_t* msg, uint16_t length)
-{
-  uint16_t cnt;
-  //uint16_t chk = length % 4; //if (chk != 0) return;
-  //uint16_t *pid;
-  //uint8_t *pbuf;
-  struct tUsbMidiCable* pcable;
-  
-  for (cnt = 0; cnt < length; cnt += 4)
-  {
-    switch ( msg[cnt] >> 4 ) {
-    case 0:
-      pcable = &usbmidicable1;
-      break;
-    case 1:
-      pcable = &usbmidicable2;
-      break;
-    default:
-      continue;
-    };
-    
-    switch ( msg[cnt] & 0x0F ) {
-    case 0x0:
-    case 0x1:
-      continue;
-    case 0x5:
-    case 0xF:  
-      pcable->buf[ pcable->curidx ] = msg[ cnt+1 ];
-      pcable->curidx = NEXTBYTE(pcable->curidx, USBMIDIMASK);
-      break;
-    case 0x2:
-    case 0x6:
-    case 0xC:
-    case 0xD:
-      pcable->buf[ pcable->curidx ] = msg[ cnt+1 ];
-      pcable->curidx = NEXTBYTE(pcable->curidx, USBMIDIMASK);
-      pcable->buf[ pcable->curidx ] = msg[ cnt+2 ];
-      pcable->curidx = NEXTBYTE(pcable->curidx, USBMIDIMASK);
-      break;
-    default:
-      pcable->buf[ pcable->curidx ] = msg[ cnt+1 ];
-      pcable->curidx = NEXTBYTE(pcable->curidx, USBMIDIMASK);
-      pcable->buf[ pcable->curidx ] = msg[ cnt+2 ];
-      pcable->curidx = NEXTBYTE(pcable->curidx, USBMIDIMASK);
-      pcable->buf[ pcable->curidx ] = msg[ cnt+3 ];
-      pcable->curidx = NEXTBYTE(pcable->curidx, USBMIDIMASK);
-      break;
-    };     
-  };
+static uint16_t MIDI_DataRx(uint8_t* msg, uint16_t length) {
+    uint8_t chan = msg[1] & 0xf;
+	uint8_t msgtype = msg[1] & 0xf0;
+	uint8_t b1 =  msg[2];
+	uint8_t b2 =  msg[3];
+	uint16_t b = ((b2 & 0x7f) << 7) | (b1 & 0x7f);
 
-  return 0;
+	switch (msgtype) {
+	case 0xB0:
+        if(b1 == 0x00) { // Bank Select
+		    controller_set_bank(b2);
+        } else {
+		    controller_set_cc(chan, b1, b2);
+        }
+		break;
+	default:
+		break;
+	}
+
+	return 0;
 }
 

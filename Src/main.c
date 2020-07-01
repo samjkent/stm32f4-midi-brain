@@ -56,6 +56,9 @@ const uint8_t encoderMap[256] = {
 /* USER CODE BEGIN PD */
 #define DEMO 0
 #define NUM_ENCS 8
+#define LED_OFFSET 64
+#define NUM_BANKS 128
+#define MIDI_GPC_1 0x10
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -91,10 +94,9 @@ HT16K33_HandleTypeDef led3;
 HT16K33_HandleTypeDef led4;
 HT16K33_HandleTypeDef led5;
 
-uint8_t enc_values[8];
-
-uint8_t banks[1][8];
-
+uint8_t controller_bank = 0;
+uint8_t enc_values[2][NUM_ENCS];
+uint8_t banks[NUM_BANKS][NUM_ENCS];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,12 +106,42 @@ static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_USART2_UART_Init(void);
+void increment_midi_value(uint8_t bank, uint8_t knob, uint8_t n);
+void decrement_midi_value(uint8_t bank, uint8_t knob, uint8_t n);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void controller_set_bank(uint8_t bank) {
+    controller_bank = bank;
+}
+
+void controller_set_cc(uint8_t bank, uint8_t enc, uint8_t value) {
+    banks[bank][enc] = value;
+}
+
+void increment_midi_value(uint8_t bank, uint8_t knob, uint8_t n) {
+    // If current MIDI value < 127
+    if(banks[bank][knob] + n <= 127) {
+        banks[bank][knob] += n;
+    } else {
+        banks[bank][knob] = 127;
+    }
+    USBD_AddCC(0,bank,MIDI_GPC_1 + knob,banks[bank][knob]);
+}
+
+void decrement_midi_value(uint8_t bank, uint8_t knob, uint8_t n) {
+    // If current MIDI value > 0
+    if(banks[bank][knob] - n >= 0) {
+        banks[bank][knob] -= n;
+    } else {
+        banks[bank][knob] = 0;
+    }
+    USBD_AddCC(0,bank,MIDI_GPC_1 + knob,banks[bank][knob]);
+}
+
 void demo(int n) {
     uint16_t values[5] = {0, 32, 64, 96, 0};
     int n_runs = 0;
@@ -305,34 +337,55 @@ int main(void)
     mcp23017_read_gpio(&enc3_4, 0);
     mcp23017_read_gpio(&enc3_4, 1);
 
+    // Shift enc_vals
+    for(int i = 0; i < NUM_ENCS; i++) {
+        enc_values[0][i] = enc_values[1][i];
+    }
+
     // Get real value
-    enc_values[0] = encoderMap[enc1.gpio[1]];
-    enc_values[1] = encoderMap[enc2.gpio[1]];
-    enc_values[2] = encoderMap[enc3.gpio[1]];
-    enc_values[3] = encoderMap[enc4.gpio[1]];
+    enc_values[1][0] = encoderMap[enc1.gpio[1]];
+    enc_values[1][1] = encoderMap[enc2.gpio[1]];
+    enc_values[1][2] = encoderMap[enc3.gpio[1]];
+    enc_values[1][3] = encoderMap[enc4.gpio[1]];
    
-    enc_values[4] = encoderMap[enc1_2.gpio[1]];
-    enc_values[5] = encoderMap[enc1_2.gpio[0]];
-    enc_values[6] = encoderMap[enc3_4.gpio[1]];
-    enc_values[7] = encoderMap[enc3_4.gpio[0]];
+    enc_values[1][4] = encoderMap[enc1_2.gpio[1]];
+    enc_values[1][5] = encoderMap[enc1_2.gpio[0]];
+    enc_values[1][6] = encoderMap[enc3_4.gpio[1]];
+    enc_values[1][7] = encoderMap[enc3_4.gpio[0]];
 
     for(int i = 0; i < NUM_ENCS; i++) {
-        if(banks[0][i] != enc_values[i]) {
-            banks[0][i] = enc_values[i];
-            USBD_AddCC(0, 0, i, banks[0][i]);
+
+        // If previous value is less than current value
+        if(enc_values[0][i] < enc_values[1][i]) {
+            // Has the encoder looped round?
+            uint8_t diff = enc_values[1][i] - enc_values[0][i];
+            if(diff > 100) {
+                decrement_midi_value(controller_bank, i, 128 - diff);
+            } else {
+                increment_midi_value(controller_bank, i, diff);
+            }
+        } else if((enc_values[0][i] > enc_values[1][i])) {
+            // Has the encoder looped round?
+            uint8_t diff = enc_values[0][i] - enc_values[1][i];
+            if(diff > 100) {
+                increment_midi_value(controller_bank, i, 128 - diff);
+            } else {
+                decrement_midi_value(controller_bank, i, diff);
+            }
         }
+
     }
 
     // Set real value
-    ht16k33_set_led(&led1, banks[0][0]);
-    ht16k33_set_led(&led2, banks[0][1]);
-    ht16k33_set_led(&led3, banks[0][2]);
-    ht16k33_set_led(&led4, banks[0][3]);
+    ht16k33_set_led(&led1, (banks[controller_bank][0] + LED_OFFSET) % 128);
+    ht16k33_set_led(&led2, (banks[controller_bank][1] + LED_OFFSET) % 128);
+    ht16k33_set_led(&led3, (banks[controller_bank][2] + LED_OFFSET) % 128);
+    ht16k33_set_led(&led4, (banks[controller_bank][3] + LED_OFFSET) % 128);
 
-    ht16k33_set_led(&led5,  0 + (banks[0][4] / 4));
-    ht16k33_set_led(&led5, 32 + (banks[0][5] / 4));
-    ht16k33_set_led(&led5, 64 + (banks[0][6] / 4));
-    ht16k33_set_led(&led5, 96 + (banks[0][7] / 4));
+    ht16k33_set_led(&led5,  0 + (banks[controller_bank][4] / 4));
+    ht16k33_set_led(&led5, 32 + (banks[controller_bank][5] / 4));
+    ht16k33_set_led(&led5, 64 + (banks[controller_bank][6] / 4));
+    ht16k33_set_led(&led5, 96 + (banks[controller_bank][7] / 4));
     
     ht16k33_write_display(&led1);
     ht16k33_write_display(&led2);
@@ -342,7 +395,7 @@ int main(void)
 
     USBD_SendMidiMessages();
 
-    HAL_Delay(5);
+    // HAL_Delay(5);
 
   }
   /* USER CODE END 3 */
