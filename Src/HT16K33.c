@@ -1,7 +1,6 @@
 #include "ht16k33.h"
 
 HAL_StatusTypeDef status;
-uint16_t ht16k33_Buffer[8];
 
 HAL_StatusTypeDef ht16k33_init(HT16K33_HandleTypeDef *hdev, I2C_HandleTypeDef *hi2c, uint16_t addr)
 {
@@ -86,8 +85,8 @@ HAL_StatusTypeDef ht16k33_clear(HT16K33_HandleTypeDef *hdev)
   return HAL_OK;
 }
 
-HAL_StatusTypeDef ht16k33_set_led(HT16K33_HandleTypeDef *hdev, uint16_t led) {
-
+HAL_StatusTypeDef ht16k33_set_led(HT16K33_HandleTypeDef *hdev, uint16_t led)
+{
   hdev->buffer[led / 16] |= 0x1 << (led % 16);
   return HAL_OK;
 }

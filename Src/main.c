@@ -24,6 +24,7 @@
 #include "usbd_midi_if.h"
 #include "MCP23017.h"
 #include "HT16K33.h"
+#include "SSD1306.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -93,6 +94,8 @@ HT16K33_HandleTypeDef led2;
 HT16K33_HandleTypeDef led3;
 HT16K33_HandleTypeDef led4;
 HT16K33_HandleTypeDef led5;
+
+SSD1306_HandleTypeDef display;
 
 uint8_t controller_bank = 0;
 uint8_t enc_values[2][NUM_ENCS];
@@ -297,6 +300,11 @@ int main(void)
   mcp23017_iodir(&enc3_4, MCP23017_PORTB, MCP23017_IODIR_ALL_INPUT);
   mcp23017_ggpu(&enc3_4, MCP23017_PORTA, MCP23017_GPPU_ALL_ENABLED);
   mcp23017_ggpu(&enc3_4, MCP23017_PORTB, MCP23017_GPPU_ALL_ENABLED);
+
+  // Display
+  ssd1306_init(&display, &hi2c1, 0x3C); 
+  ssd1306_put_string(&display, 0,0,"Fask");
+  ssd1306_update_screen(&display);
 
   if(DEMO) {
     demo(0);
