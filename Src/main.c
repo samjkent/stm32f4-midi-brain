@@ -100,6 +100,13 @@ SSD1306_HandleTypeDef display;
 uint8_t controller_bank = 0;
 uint8_t enc_values[2][NUM_ENCS];
 uint8_t banks[NUM_BANKS][NUM_ENCS];
+
+struct Labels {
+    char bankname[9];
+    char encoders[9][NUM_ENCS];
+};
+
+struct Labels labels[NUM_BANKS];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -111,14 +118,25 @@ static void MX_I2C3_Init(void);
 static void MX_USART2_UART_Init(void);
 void increment_midi_value(uint8_t bank, uint8_t knob, uint8_t n);
 void decrement_midi_value(uint8_t bank, uint8_t knob, uint8_t n);
+void init_bank_names();
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void init_bank_names() {
+    for(int i = 0; i < NUM_BANKS; i++) {
+        char bankname[9];
+        sprintf(&bankname, "Bank %i", i);
+        strcpy(labels[i].bankname, &bankname);
+    }
+}
+
 void controller_set_bank(uint8_t bank) {
     controller_bank = bank;
+    ssd1306_put_string(&display, 0, 0, labels[bank].bankname);
+    ssd1306_update_screen(&display);
 }
 
 void controller_set_cc(uint8_t bank, uint8_t enc, uint8_t value) {
@@ -220,6 +238,8 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
+  init_bank_names();
+
   for (uint8_t i=1; i<128; i++)
  	{
  	  int result = HAL_I2C_IsDeviceReady(&hi2c1, (uint16_t)(i<<1), 2, 2);
@@ -303,7 +323,7 @@ int main(void)
 
   // Display
   ssd1306_init(&display, &hi2c1, 0x3C); 
-  ssd1306_put_string(&display, 0,0,"Fask");
+  ssd1306_put_string(&display, 0,0, labels[0].bankname);
   ssd1306_update_screen(&display);
 
   if(DEMO) {
@@ -380,6 +400,9 @@ int main(void)
             } else {
                 decrement_midi_value(controller_bank, i, diff);
             }
+        } else {
+            // If no changes then check next encoder
+            continue;
         }
 
     }

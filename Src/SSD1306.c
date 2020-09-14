@@ -111,14 +111,15 @@ HAL_StatusTypeDef ssd1306_draw_pixel(SSD1306_HandleTypeDef *hdev, uint8_t x, uin
 }
 
 HAL_StatusTypeDef ssd1306_put_string(SSD1306_HandleTypeDef *hdev, uint8_t x, uint8_t y, char* s) {
-    for(int i = 0; i < sizeof(s); i++) {
+    int i = 0;
+    while(s[i] != '\0') {
         ssd1306_put_char(hdev, x + i, y, s[i]);
+        i++;
     }
 }
 
 HAL_StatusTypeDef ssd1306_put_char(SSD1306_HandleTypeDef *hdev, uint8_t x, uint8_t y, char c) {
-
-    for(int _y = 0; _y < 26; _y++) {
+    for(int _y = 0; _y <24; _y++) {
         for(int _x = 0; _x < 8; _x++) {
             ssd1306_draw_pixel(hdev,(x*16) + _x,(y*26) + _y, ((font[c][2 * _y] >> _x) & 0x01) ? SSD1306_WHITE : SSD1306_BLACK);
             ssd1306_draw_pixel(hdev,(x*16) + _x + 8,(y*26) + _y, ((font[c][2 * _y + 1] >> _x) & 0x01) ? SSD1306_WHITE : SSD1306_BLACK);
