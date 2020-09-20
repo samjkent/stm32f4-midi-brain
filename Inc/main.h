@@ -32,7 +32,6 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -53,6 +52,7 @@ extern "C" {
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 void controller_set_bank(uint8_t bank);
+void controller_set_cc(uint8_t bank, uint8_t enc, uint8_t value);
 
 /* USER CODE BEGIN EFP */
 

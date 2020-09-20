@@ -119,6 +119,7 @@ static void MX_USART2_UART_Init(void);
 void increment_midi_value(uint8_t bank, uint8_t knob, uint8_t n);
 void decrement_midi_value(uint8_t bank, uint8_t knob, uint8_t n);
 void init_bank_names();
+void JumpToBootloader(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -226,11 +227,19 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST)) {
+    JumpToBootloader();
+  }
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+#ifdef BLINKY
+  while(1) {
+    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    HAL_Delay(500);
+  }
+#endif
   MX_DMA_Init();
   MX_I2C1_Init();
   MX_I2C3_Init();
@@ -445,16 +454,17 @@ void SystemClock_Config(void)
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+
   /** Initializes the CPU, AHB and APB busses clocks 
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 168;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
-  RCC_OscInitStruct.PLL.PLLQ = 7;
+  RCC_OscInitStruct.PLL.PLLN = 72;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 3;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -671,5 +681,76 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
+/**
+ * Function to perform jump to system memory boot from user application
+ *
+ * Call function when you want to jump to system memory
+ */
+void JumpToBootloader(void) {
+	void (*SysMemBootJump)(void);
+
+	/**
+	 * Step: Set system memory address.
+	 *
+	 *       For STM32F429, system memory is on 0x1FFF 0000
+	 *       For other families, check AN2606 document table 110 with descriptions of memory addresses
+	 */
+	volatile uint32_t addr = 0x1FFF0000;
+
+	/**
+	 * Step: Disable RCC, set it to default (after reset) settings
+	 *       Internal clock, no PLL, etc.
+	 */
+	HAL_RCC_DeInit();
+
+	/**
+	 * Step: Disable systick timer and reset it to default values
+	 */
+	SysTick->CTRL = 0;
+	SysTick->LOAD = 0;
+	SysTick->VAL = 0;
+
+	/**
+	 * Step: Remap system memory to address 0x0000 0000 in address space
+	 *       For each family registers may be different.
+	 *       Check reference manual for each family.
+	 *
+	 *       For STM32F4xx, MEMRMP register in SYSCFG is used (bits[1:0])
+	 *       For STM32F0xx, CFGR1 register in SYSCFG is used (bits[1:0])
+	 *       For others, check family reference manual
+	 */
+	//Remap by hand... {
+	SYSCFG->MEMRMP = 0x01;
+
+	//} ...or if you use HAL drivers
+	//__HAL_SYSCFG_REMAPMEMORY_SYSTEMFLASH();	//Call HAL macro to do this for you
+
+	/**
+	 * Step: Set jump memory location for system memory
+	 *       Use address with 4 bytes offset which specifies jump location where program starts
+	 */
+	SysMemBootJump = (void (*)(void)) (*((uint32_t *)(addr + 4)));
+
+	/**
+	 * Step: Set main stack pointer.
+	 *       This step must be done last otherwise local variables in this function
+	 *       don't have proper value since stack pointer is located on different position
+	 *
+	 *       Set direct address location which specifies stack pointer in SRAM location
+	 */
+	__set_MSP(*(uint32_t *)addr);
+
+	/**
+	 * Step: Actually call our function to jump to set location
+	 *       This will start system memory execution
+	 */
+	SysMemBootJump();
+
+	/**
+	 * Step: Connect USB<->UART converter to dedicated USART pins and test
+	 *       and test with bootloader works with STM32 Flash Loader Demonstrator software
+	 */
+}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -75,7 +75,7 @@ Src/usbd_midi_if.c
 
 # ASM sources
 ASM_SOURCES =  \
-startup_stm32f401xe.s
+startup_stm32f401xc.s
 
 
 #######################################
@@ -120,7 +120,7 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
--DSTM32F401xE
+-DSTM32F401xC
 
 
 # AS includes
@@ -155,7 +155,7 @@ CFLAGS += -MMD -MP -MF"$(@:%.o=%.d)"
 # LDFLAGS
 #######################################
 # link script
-LDSCRIPT = STM32F401RETx_FLASH.ld
+LDSCRIPT = STM32F401RBTx_FLASH.ld
 
 # libraries
 LIBS = -lc -lm -lnosys 

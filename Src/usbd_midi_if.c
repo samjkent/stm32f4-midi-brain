@@ -152,12 +152,11 @@ static uint16_t MIDI_DataTx(uint8_t *msg, uint16_t length)
 
 static uint16_t MIDI_DataRx(uint8_t* msg, uint16_t length) {
     uint8_t chan = msg[1] & 0xf;
-	uint8_t msgtype = msg[1] & 0xf0;
 	uint8_t b1 =  msg[2];
 	uint8_t b2 =  msg[3];
 	uint16_t b = ((b2 & 0x7f) << 7) | (b1 & 0x7f);
 
-	switch (msgtype) {
+	switch (msg[1] & 0xF0) {
 	case 0xB0:
         if(b1 == 0x00) { // Bank Select
 		    controller_set_bank(b2);
@@ -165,6 +164,11 @@ static uint16_t MIDI_DataRx(uint8_t* msg, uint16_t length) {
 		    controller_set_cc(chan, b1, b2);
         }
 		break;
+    case 0xF0:
+        if(msg[1] == 0xFF) {
+            NVIC_SystemReset();
+        }
+        break;
 	default:
 		break;
 	}
