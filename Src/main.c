@@ -456,6 +456,11 @@ void SystemClock_Config(void)
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
 
   /** Initializes the CPU, AHB and APB busses clocks 
+   *  For STM32F4 Dev Board:
+   *  HSEState: RCC_HSE_BYPASS
+   *  PLLN: 168 
+   *  PLLP: DIV4 
+   *  PLLQ: 7
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
