@@ -80,7 +80,6 @@ DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
-extern struct tUsbMidiCable usbmidicable1;
 MCP23017_HandleTypeDef enc1;
 MCP23017_HandleTypeDef enc2;
 MCP23017_HandleTypeDef enc3;
@@ -151,7 +150,7 @@ void increment_midi_value(uint8_t bank, uint8_t knob, uint8_t n) {
     } else {
         banks[bank][knob] = 127;
     }
-    USBD_AddCC(0,bank,MIDI_GPC_1 + knob,banks[bank][knob]);
+    // USBD_AddCC(0,bank,MIDI_GPC_1 + knob,banks[bank][knob]);
 }
 
 void decrement_midi_value(uint8_t bank, uint8_t knob, uint8_t n) {
@@ -161,7 +160,7 @@ void decrement_midi_value(uint8_t bank, uint8_t knob, uint8_t n) {
     } else {
         banks[bank][knob] = 0;
     }
-    USBD_AddCC(0,bank,MIDI_GPC_1 + knob,banks[bank][knob]);
+    // USBD_AddCC(0,bank,MIDI_GPC_1 + knob,banks[bank][knob]);
 }
 
 void demo(int n) {
@@ -246,6 +245,15 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
+
+  if(!HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7)) {
+      JumpToBootloader();
+  }
+
+  while(1) {
+    // HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    HAL_Delay(2000);
+  }
 
   init_bank_names();
 
@@ -433,7 +441,7 @@ int main(void)
     ht16k33_write_display(&led4);
     ht16k33_write_display(&led5);
 
-    USBD_SendMidiMessages();
+    // USBD_SendMidiMessages();
 
     // HAL_Delay(5);
 
@@ -639,11 +647,11 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  /*Configure GPIO pin : B7_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LD2_Pin */
   GPIO_InitStruct.Pin = LD2_Pin;

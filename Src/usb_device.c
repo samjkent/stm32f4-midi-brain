@@ -37,7 +37,6 @@
 #include "usb_device.h"
 #include "usbd_core.h"
 #include "usbd_desc.h"
-#include "usbd_midi.h"
 #include "usbd_midi_if.h"
 
 /* USB Device Core handle declaration */
@@ -51,7 +50,7 @@ void MX_USB_DEVICE_Init(void)
 
   USBD_RegisterClass(&hUsbDeviceFS, &USBD_MIDI);
 
-  USBD_MIDI_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS);
+  USBD_MIDI_RegisterInterface(&hUsbDeviceFS, &USBD_MIDI_fops);
 
   USBD_Start(&hUsbDeviceFS);
 
