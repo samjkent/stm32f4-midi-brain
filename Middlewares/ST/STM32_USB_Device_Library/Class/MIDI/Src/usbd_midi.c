@@ -1,42 +1,11 @@
 /**
   ******************************************************************************
   * @file    usbd_midi.c
-  * @author  MCD Application Team
+  * @author  Sam Kent
   * @brief   This file provides the MIDI core functions.
-  *
-  * @verbatim
-  *
-  *          ===================================================================
-  *                                MIDI Class  Description
-  *          ===================================================================
- *           This driver manages the MIDI Class 1.0 following the "USB Device Class Definition for
-  *           MIDI Devices V1.0 Mar 18, 98".
-  *
-  * @note     In HS mode and when the DMA is used, all variables and data structures
-  *           dealing with the DMA during the transaction process should be 32-bit aligned.
-  *
-  *
-  *  @endverbatim
-  *
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2015 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                      http://www.st.com/SLA0044
   *
   ******************************************************************************
   */
-
-  /* BSPDependencies
-  - "stm32xxxxx_{eval}{discovery}.c"
-  - "stm32xxxxx_{eval}{discovery}_io.c"
-  - "stm32xxxxx_{eval}{discovery}_midi.c"
-  EndBSPDependencies */
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_midi.h"
@@ -111,10 +80,6 @@ static uint8_t  USBD_MIDI_SOF (USBD_HandleTypeDef *pdev);
 static uint8_t  USBD_MIDI_IsoINIncomplete (USBD_HandleTypeDef *pdev, uint8_t epnum);
 
 static uint8_t  USBD_MIDI_IsoOutIncomplete (USBD_HandleTypeDef *pdev, uint8_t epnum);
-
-static void MIDI_REQ_GetCurrent(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
-
-static void MIDI_REQ_SetCurrent(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req);
 
 /**
   * @}
