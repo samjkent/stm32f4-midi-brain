@@ -252,6 +252,9 @@ int main(void)
 
   while(1) {
     // HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    MIDI_note_on(56, 77);
+    HAL_Delay(2000);
+    MIDI_note_off(56, 0);
     HAL_Delay(2000);
   }
 

@@ -48,16 +48,17 @@
   * @{
   */
 
-static int8_t MIDI_Init     (void);
-static int8_t MIDI_DeInit   (void);
-static uint16_t MIDI_Receive  (uint8_t* pbuf, uint16_t Len);
-static uint16_t MIDI_Send     (uint8_t* pbuf, uint16_t Len);
+static int8_t MIDI_Init     (USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+static int8_t MIDI_DeInit   (USBD_HandleTypeDef *pdev, uint8_t cfgidx);
+static int8_t MIDI_Receive  (uint8_t* pbuf, uint32_t length);
+static int8_t MIDI_Send     (uint8_t* pbuf, uint32_t length);
 
 USBD_MIDI_ItfTypeDef USBD_MIDI_fops =
 {
   MIDI_Init,
   MIDI_DeInit,
-  MIDI_Receive
+  MIDI_Receive,
+  MIDI_Send
 };
 
 /* Private functions ---------------------------------------------------------*/
@@ -68,7 +69,7 @@ USBD_MIDI_ItfTypeDef USBD_MIDI_fops =
   * @param  None
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t MIDI_Init(void)
+static int8_t MIDI_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
   /*
      Add your initialization code here
@@ -82,7 +83,7 @@ static int8_t MIDI_Init(void)
   * @param  None
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static int8_t MIDI_DeInit(void)
+static int8_t MIDI_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
   /*
      Add your deinitialization code here
@@ -93,15 +94,16 @@ static int8_t MIDI_DeInit(void)
 /**
   * @brief  MIDI_Send
   *
-  * @param  Buf: Buffer of data to be received
-  * @param  Len: Number of data received (in bytes)
+  * @param  buffer: bufferfer of data to be received
+  * @param  length: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static uint16_t MIDI_Send (uint8_t* Buf, uint16_t Len)
+static int8_t MIDI_Send (uint8_t* buffer, uint32_t length)
 {
   uint8_t ret = USBD_OK;
 
-  USBD_MIDI_SetTxBuffer(&hUsbDeviceFS,Buf,Len);
+  USBD_MIDI_SetTxBuffer(&hUsbDeviceFS, buffer, length);
+
   ret = USBD_MIDI_TransmitPacket(&hUsbDeviceFS);
 
   return (ret);
@@ -110,22 +112,22 @@ static uint16_t MIDI_Send (uint8_t* Buf, uint16_t Len)
 /**
   * @brief  MIDI_Receive
   *
-  * @param  Buf: Buffer of data to be received
-  * @param  Len: Number of data received (in bytes)
+  * @param  buffer: bufferfer of data to be received
+  * @param  length: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-static uint16_t MIDI_Receive (uint8_t* Buf, uint16_t Len)
+static int8_t MIDI_Receive (uint8_t* buffer, uint32_t length)
 {
 
-  uint8_t chan = Buf[1] & 0xf;
-  uint8_t msgtype = Buf[1] & 0xf0;
-  uint8_t b1 =  Buf[2];
-  uint8_t b2 =  Buf[3];
+  uint8_t chan = buffer[1] & 0xf;
+  uint8_t msgtype = buffer[1] & 0xf0;
+  uint8_t b1 =  buffer[2];
+  uint8_t b2 =  buffer[3];
   uint16_t b = ((b2 & 0x7f) << 7) | (b1 & 0x7f);
   
   switch (msgtype) {
   case 0xF0:
-    if(chan == 0xFF) {
+    if(chan == 0x0F) {
         NVIC_SystemReset(); // Reset into DFU mode
     }
   	break;
@@ -136,27 +138,38 @@ static uint16_t MIDI_Receive (uint8_t* Buf, uint16_t Len)
   return (0);
 }
 
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
 void MIDI_note_on(uint8_t note, uint8_t velocity) {
-    
-    uint8_t b[3];
-    b[0] = 0x90;
-    b[1] = note;
-    b[2] = velocity;
+    uint8_t b[4];
+    b[0] = 0x0B;
+    b[1] = 0x90;
+    b[2] = note;
+    b[3] = velocity;
 
-    MIDI_Send(b, 3);
+    MIDI_Send(b, 4);
+
 }
+
+void MIDI_note_off(uint8_t note, uint8_t velocity) {
+    uint8_t b[4];
+    b[0] = 0x0B;
+    b[1] = 0x80;
+    b[2] = note;
+    b[3] = velocity;
+
+    MIDI_Send(b, 4);
+
+}
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
 

@@ -25,7 +25,9 @@ extern USBD_MIDI_ItfTypeDef  USBD_MIDI_fops;
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
+
 void MIDI_note_on(uint8_t note, uint8_t velocity);
+void MIDI_note_off(uint8_t note, uint8_t velocity);
 
 #ifdef __cplusplus
 }
