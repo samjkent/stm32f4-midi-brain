@@ -1,28 +1,38 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           : usb_device.h
+  * @file           : USB_DEVICE
   * @version        : v1.0_Cube
-  * @brief          : Header for usb_device.c file.
+  * @brief          : Header for usb_device file.
   ******************************************************************************
-  * @attention
+  * COPYRIGHT(c) 2016 STMicroelectronics
   *
-  * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Redistribution and use in source and binary forms, with or without modification,
+  * are permitted provided that the following conditions are met:
+  * 1. Redistributions of source code must retain the above copyright notice,
+  * this list of conditions and the following disclaimer.
+  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  * this list of conditions and the following disclaimer in the documentation
+  * and/or other materials provided with the distribution.
+  * 3. Neither the name of STMicroelectronics nor the names of its contributors
+  * may be used to endorse or promote products derived from this software
+  * without specific prior written permission.
   *
-  * This software component is licensed by ST under Ultimate Liberty license
-  * SLA0044, the "License"; You may not use this file except in compliance with
-  * the License. You may obtain a copy of the License at:
-  *                             www.st.com/SLA0044
+  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-  */
-/* USER CODE END Header */
-
+*/
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USB_DEVICE__H__
-#define __USB_DEVICE__H__
-
+#ifndef __usb_device_H
+#define __usb_device_H
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -32,74 +42,22 @@
 #include "stm32f4xx_hal.h"
 #include "usbd_def.h"
 
-/* USER CODE BEGIN INCLUDE */
+extern USBD_HandleTypeDef hUsbDeviceFS;
 
-/* USER CODE END INCLUDE */
-
-/** @addtogroup USBD_OTG_DRIVER
-  * @{
-  */
-
-/** @defgroup USBD_DEVICE USBD_DEVICE
-  * @brief Device file for Usb otg low level driver.
-  * @{
-  */
-
-/** @defgroup USBD_DEVICE_Exported_Variables USBD_DEVICE_Exported_Variables
-  * @brief Public variables.
-  * @{
-  */
-
-/* Private variables ---------------------------------------------------------*/
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
-/* USER CODE BEGIN PFP */
-
-/* USER CODE END PFP */
-
-/*
- * -- Insert your variables declaration here --
- */
-/* USER CODE BEGIN VARIABLES */
-
-/* USER CODE END VARIABLES */
-/**
-  * @}
-  */
-
-/** @defgroup USBD_DEVICE_Exported_FunctionsPrototype USBD_DEVICE_Exported_FunctionsPrototype
-  * @brief Declaration of public functions for Usb device.
-  * @{
-  */
-
-/** USB Device initialization function. */
+/* USB_Device init function */	
 void MX_USB_DEVICE_Init(void);
-
-/*
- * -- Insert functions declaration here --
- */
-/* USER CODE BEGIN FD */
-
-/* USER CODE END FD */
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
 
 #ifdef __cplusplus
 }
 #endif
+#endif /*__usb_device_H */
 
-#endif /* __USB_DEVICE__H__ */
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
