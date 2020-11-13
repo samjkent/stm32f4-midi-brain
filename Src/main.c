@@ -106,6 +106,9 @@ struct Labels {
 };
 
 struct Labels labels[NUM_BANKS];
+
+uint8_t number_of_i2c_devices = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -250,14 +253,6 @@ int main(void)
       JumpToBootloader();
   }
 
-  while(1) {
-    // HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    MIDI_note_on(56, 77);
-    HAL_Delay(2000);
-    MIDI_note_off(56, 0);
-    HAL_Delay(2000);
-  }
-
   init_bank_names();
 
   for (uint8_t i=1; i<128; i++)
@@ -269,6 +264,7 @@ int main(void)
  	  }
  	  if (result == HAL_OK)
  	  {
+          number_of_i2c_devices++;
  		  printf("Device detected. Address: %x", i);
  	  }
   }
@@ -282,6 +278,7 @@ int main(void)
  	  }
  	  if (result == HAL_OK)
  	  {
+          number_of_i2c_devices++;
  		  printf("Device detected. Address: %x", i);
  	  }
   }
