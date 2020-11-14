@@ -159,6 +159,17 @@ void MIDI_note_off(uint8_t note, uint8_t velocity) {
     MIDI_Send(b, 4);
 
 }
+
+void MIDI_cc_update(uint8_t channel , uint8_t controler_number, uint8_t controller_value) {
+    uint8_t b[4];
+    b[0] = 0x0B;
+    b[1] = 0xB0 | channel;
+    b[2] = controler_number;
+    b[3] = controller_value;
+
+    MIDI_Send(b, 4);
+
+}
 /**
   * @}
   */

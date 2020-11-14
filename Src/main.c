@@ -154,6 +154,7 @@ void increment_midi_value(uint8_t bank, uint8_t knob, uint8_t n) {
         banks[bank][knob] = 127;
     }
     // USBD_AddCC(0,bank,MIDI_GPC_1 + knob,banks[bank][knob]);
+    MIDI_cc_update(bank, MIDI_GPC_1 + knob , banks[bank][knob]);
 }
 
 void decrement_midi_value(uint8_t bank, uint8_t knob, uint8_t n) {
@@ -163,7 +164,7 @@ void decrement_midi_value(uint8_t bank, uint8_t knob, uint8_t n) {
     } else {
         banks[bank][knob] = 0;
     }
-    // USBD_AddCC(0,bank,MIDI_GPC_1 + knob,banks[bank][knob]);
+    MIDI_cc_update(bank, MIDI_GPC_1 + knob , banks[bank][knob]);
 }
 
 void demo(int n) {
