@@ -1,3 +1,7 @@
+Note: for new designs use Tiny USB https://github.com/hathach/tinyusb
+
+---------------------
+
 # STM32 MIDI Brain
 
 Firmware using STM32 HAL to handle control boards, plus USB interface
